@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>WebTorrent & Plyr demo</title>
+    <script src="https://cdn.jsdelivr.net/webtorrent/latest/webtorrent.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/plyr/3.1.0/plyr.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plyr/3.1.0/plyr.min.js"></script>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <title>A magnet web</title>
+</head>
+<!-- https://titanwolf.org/Network/Articles/Article?AID=dcdc22d4-29ff-4699-91f4-eb2e37a56f0f#gsc.tab=0 -->
+<body>
+    <div class="container-fluid">
+        <div class="container mt-2">
+            <form method="post" id="form-post">
+                <div class="mt-3 mb-3">
+                    <label for="f-input" class="form-label">Magnet</label>
+                    <input type="text" class="form-control" id="f-input" style="font-size:28px;">
+                </div>
+            </form>
+        </div>
+        <div class="container mt-3" id="videoContainer">
+            <!-- <video id="player" controls class="mt-3"></video> -->
+        </div>
+    </div>
+    <script src="js/core.js"></script>
+    <script src="js/magnet.js"></script>
+</body>
+</html>

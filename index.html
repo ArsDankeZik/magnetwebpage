@@ -9,8 +9,20 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/plyr/3.1.0/plyr.min.js"></script>
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <title>A magnet web</title>
+    <style>
+        body {
+            background: #181818;
+            color: white;
+            /* overflow: hidden; */
+        }
+
+        #magnetName{
+            color: white;
+        }
+    </style>
 </head>
 <!-- https://titanwolf.org/Network/Articles/Article?AID=dcdc22d4-29ff-4699-91f4-eb2e37a56f0f#gsc.tab=0 -->
+
 <body>
     <div class="container-fluid">
         <div class="container mt-2">
@@ -21,11 +33,22 @@
                 </div>
             </form>
         </div>
+        <div class="container mt-3">
+            <h1 id="magnetName" class="display-6"></h1>
+        </div>
         <div class="container mt-3" id="videoContainer">
             <!-- <video id="player" controls class="mt-3"></video> -->
         </div>
     </div>
-    <script src="js/core.js"></script>
-    <script src="js/magnet.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.6/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.6/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.6/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.6/firebase-functions.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.2.6/firebase-database.js"></script>
+
+    <script defer src="js/firebase.js"></script>
+    <script defer src="js/core.js"></script>
+    <script defer src="js/magnet.js"></script>
 </body>
+
 </html>

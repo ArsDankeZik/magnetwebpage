@@ -44,29 +44,54 @@ function createPlayer() {
     pl.setAttribute('controls', '');
     getSingle('#videoContainer').appendChild(pl);
 
-    const player = new Plyr('#player', {
-        debug: false,
-        captions: {
-            active: true,
-            update: true,
-        },
-        controls: [
-            'play-large', // The large play button in the center
-            'play', // Play/pause playback
-            'progress', // The progress bar and scrubber for playback and buffering
-            'current-time', // The current time of playback
-            'duration', // The full duration of the media
-            'mute', // Toggle mute
-            'volume', // Volume control
-            'captions', // Toggle captions
-            'pip', // Picture-in-picture (currently Safari only)
-            'download', // Show a download button with a link to either the current source or a custom URL you specify in your options
-            'fullscreen', // Toggle fullscreen
-        ]
-    });
-
     const room = localStorage.getItem('room');
     const user = localStorage.getItem('user');
+    let player = null;
+
+    if(parseInt(user) != 1){
+        player = new Plyr('#player', {
+            debug: false,
+            captions: {
+                active: true,
+                update: true,
+            },
+            clickToPlay: false,
+            controls: [
+                'progress', // The progress bar and scrubber for playback and buffering
+                'current-time', // The current time of playback
+                'duration', // The full duration of the media
+                'mute', // Toggle mute
+                'volume', // Volume control
+                'captions', // Toggle captions
+                'pip', // Picture-in-picture (currently Safari only)
+                'download', // Show a download button with a link to either the current source or a custom URL you specify in your options
+                'fullscreen', // Toggle fullscreen
+            ]
+        });
+    }else{
+        player = new Plyr('#player', {
+            debug: false,
+            captions: {
+                active: true,
+                update: true,
+            },
+            controls: [
+                'play-large', // The large play button in the center
+                'play', // Play/pause playback
+                'progress', // The progress bar and scrubber for playback and buffering
+                'current-time', // The current time of playback
+                'duration', // The full duration of the media
+                'mute', // Toggle mute
+                'volume', // Volume control
+                'captions', // Toggle captions
+                'pip', // Picture-in-picture (currently Safari only)
+                'download', // Show a download button with a link to either the current source or a custom URL you specify in your options
+                'fullscreen', // Toggle fullscreen
+            ]
+        });
+    }
+
+
 
     player.on('ready', e => {
         player.poster = 'src/movietime.jpg';
@@ -121,7 +146,7 @@ function createPlayer() {
                                 getSingle('#player').currentTime = snap.val().time;
                             }
                             // snap.val().paused ? player.pause() : player.play();
-                        }, 350);
+                        }, 150);
                     }
                 });
             })

@@ -189,6 +189,20 @@ function ajaxPost(value) {
     });
 }
 
+function ajaxGET(value){
+    return new Promise((resolve, reject) => {
+        var xhttp = new XMLHttpRequest();
+        xhttp.onreadystatechange = function () {
+            if (this.readyState == 4 && this.status == 200) {
+                resolve(this.responseText);
+            }
+        };
+        xhttp.open("GET", encodeURI(value), true);
+        xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+        xhttp.send();
+    });
+}
+
 function md5(d) {
     return rstr2hex(binl2rstr(binl_md5(rstr2binl(d), 8 * d.length)))
 }

@@ -11,6 +11,8 @@ let t = null;
 
             onOffNode(getSingle('#form-post'), false);
             syncPlayer();
+
+
         }
     }
 })();
@@ -47,7 +49,95 @@ function createPlayer() {
         captions: {
             active: true,
             update: true,
+        },
+        controls: [
+            'play-large', // The large play button in the center
+            'play', // Play/pause playback
+            'progress', // The progress bar and scrubber for playback and buffering
+            'current-time', // The current time of playback
+            'duration', // The full duration of the media
+            'mute', // Toggle mute
+            'volume', // Volume control
+            'captions', // Toggle captions
+            'pip', // Picture-in-picture (currently Safari only)
+            'download', // Show a download button with a link to either the current source or a custom URL you specify in your options
+            'fullscreen', // Toggle fullscreen
+        ]
+    });
+
+    const room = localStorage.getItem('room');
+    const user = localStorage.getItem('user');
+
+    player.on('ready', e => {
+        player.poster = 'src/movietime.jpg';
+    });
+
+    player.on('playing', e => {
+        if (parseInt(localStorage.getItem('user')) == 1) {
+            getUsers().then(nr => {
+                const _nr = parseInt(nr);
+                for (let i = 1; i < _nr + 1; i++) {
+                    path.child(`rooms/${room}/users/${i}/`).update({
+                        paused: false,
+                        time: [e.detail.plyr.currentTime]
+                    });
+                }
+            });
         }
+    });
+
+    player.on('pause', e => {
+        if (parseInt(localStorage.getItem('user')) == 1) {
+            getUsers().then(nr => {
+                const _nr = parseInt(nr);
+                for (let i = 1; i < _nr + 1; i++) {
+                    path.child(`rooms/${room}/users/${i}/`).update({
+                        paused: true,
+                        time: [e.detail.plyr.currentTime]
+                    });
+                }
+            });
+        }
+    });
+
+    // player.on('timeupdate', e => {
+    //     timeUpdate(room, user, e.detail.plyr.currentTime);
+    // });
+
+    getUsers().then(nr => {
+        for (let i = 0; i < parseInt(nr); i++) {
+            path.child(`rooms/${localStorage.getItem('room')}/users/`).on('child_changed', snap => {
+                path.child(`rooms/${localStorage.getItem('room')}/users/${i+1}`).once('value', snap => {
+                    if (parseInt(localStorage.getItem('user')) != 1) {
+                        setTimeout(() => {
+                            print('The value is: ' + snap.val().paused);
+                            if (snap.val().paused) {
+                                print('Pause');
+                                getSingle('#player').pause();
+                                getSingle('#player').currentTime = snap.val().time;
+                            } else {
+                                print('Play');
+                                getSingle('#player').play();
+                                getSingle('#player').currentTime = snap.val().time;
+                            }
+                            // snap.val().paused ? player.pause() : player.play();
+                        }, 350);
+                    }
+                });
+            })
+        }
+    });
+
+    path.child(`rooms/${localStorage.getItem('room')}/users/`).once('value', snap => {
+        getSingle('#numViewers').innerHTML = 'subs: ' + snap.numChildren();
+    });
+}
+
+function getUsers() {
+    return new Promise(resolve => {
+        path.child(`rooms/${localStorage.getItem('room')}/users/`).once('value', snap => {
+            resolve(snap.numChildren());
+        });
     });
 }
 
@@ -67,7 +157,7 @@ async function cCreate(client, torrentId) {
             autoplay: false,
             muted: true
         }, function callback() {
-            console.log("Ready!");
+            // console.log("Ready!");
         });
 
 
@@ -82,7 +172,7 @@ async function cCreate(client, torrentId) {
                 1: {
                     admin: true,
                     paused: true,
-                    time: '0:00:00'
+                    time: '0'
                 }
             }
         });
@@ -93,17 +183,30 @@ async function cCreate(client, torrentId) {
         changeURL(`${window.location.pathname}?r=${encodeURI(room)}`);
         getSingle('#magnetName').innerHTML = torrent.name;
     });
+
+    client.on('torrent', (torrent) => {
+        print('Torrent is ready to be used!');
+
+        // getSingle('#player').autoplay = true;
+
+        path.child(`rooms/${localStorage.getItem('room')}/users/`).once('value', snap => {
+            getSingle('#numViewers').innerHTML = 'subs: ' + snap.numChildren();
+            getSingle('#numViewers').innerHTML += '<br>Torrent ready to be played!';
+        });
+    });
+
+    client.on('error', function (err) {});
 }
 
 async function syncPlayer() {
     createPlayer();
     const client = cNewClient();
-    
+
     getRoomInfo(localStorage.getItem('room')).then(roomInfoObj => {
 
         getSingle('#magnetName').innerHTML = roomInfoObj.torrent.name[0];
         client.add(roomInfoObj.torrent.magnetURI[0], async (torrent) => {
-            print(torrent);
+            // print(torrent);
             t = torrent;
 
             let file = torrent.files.find((file) => {
@@ -117,6 +220,38 @@ async function syncPlayer() {
                 console.log("Ready!");
             });
         });
+
+        client.on('torrent', (torrent) => {
+            print('Torrent is ready to be used!');
+            // print(torrent);
+        });
+
+        client.on('error', function (err) {});
+    });
+}
+
+function checkDiffTime(t1, t2) {
+    let maior = t1 > t2 ? t1 : t2;
+    let minor = t1 < t2 ? t1 : t2;
+
+    return (maior - minor) >= 1.3 ? true : false;
+}
+
+function play(room, user) {
+    path.child(`rooms/${room}/users/${user}/`).update({
+        paused: false
+    });
+}
+
+function pause(room, user) {
+    path.child(`rooms/${room}/users/${user}/`).update({
+        paused: true
+    });
+}
+
+function timeUpdate(room, user, time) {
+    path.child(`rooms/${room}/users/${user}/`).update({
+        time: [time]
     });
 }
 
@@ -132,6 +267,11 @@ function getLastUserPerRoom(room) {
         path.child(`/rooms/${room}/users`).once('value', v => resolve(Object.keys(v.val()).pop())));
 }
 
+function getNumberOfUsers(room) {
+    return new Promise((resolve) =>
+        path.child(`/rooms/${room}/users/`).once('value', v => resolve(v.numChildren())));
+}
+
 function createRoom(id, obj) {
     path.child(`rooms/${id}`).update(obj);
 }
@@ -142,7 +282,7 @@ async function createUser(room) {
     path.child(`/rooms/${room}/users/${currentUser}`).update({
         admin: false,
         paused: true,
-        time: '0:00:00'
+        time: '0'
     });
 
     return currentUser;

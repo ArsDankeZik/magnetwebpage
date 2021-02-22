@@ -10,24 +10,19 @@
     <link rel="stylesheet" href="css/bootstrap.min.css">
     <title>A magnet web</title>
     <style>
+        h1, p, label{
+            color: white  !important;
+        }
+
         body {
             background: #181818;
             color: white;
             /* overflow: hidden; */
         }
 
-        #magnetName{
-            color: white;
+        .hand{
+            cursor: pointer !important;
         }
-
-        #numViewers {
-            color: white;
-        }
-
-        p{
-            color: white;
-        }
-        
     </style>
 </head>
 <!-- https://titanwolf.org/Network/Articles/Article?AID=dcdc22d4-29ff-4699-91f4-eb2e37a56f0f#gsc.tab=0 -->
@@ -38,7 +33,7 @@
             <form method="post" id="form-post">
                 <div class="mt-3 mb-3">
                     <label for="f-input" class="form-label">Magnet</label>
-                    <input type="text" class="form-control" id="f-input" style="font-size:28px;">
+                    <input type="text" class="form-control c-black" id="f-input" style="font-size:28px;">
                 </div>
             </form>
         </div>
@@ -47,9 +42,17 @@
         </div>
         <div class="container mt-3" id="videoContainer">
             <!-- <video id="player" controls class="mt-3"></video> -->
+            
         </div>
         <div class="container mt-3">
-            <h1 id="numViewers" class="display-6"></h1>
+            <div class="row">
+                <div class="col-6">
+                    <h1 id="numViewers" class="display-6"></h1>
+                </div>
+                <div class="col-6 text-right">
+                    <h1 id="deleteButton" class="display-6 hand">🗑️</h1>
+                </div>
+            </div>
         </div>
     </div>
     <script src="https://www.gstatic.com/firebasejs/8.2.6/firebase-app.js"></script>

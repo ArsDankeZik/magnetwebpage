@@ -67,14 +67,13 @@ getSingle('#f-input').addEventListener('keydown', (e) => {
     }
 });
 
-
 function createPlayer() {
     removeChildsNode(getSingle('#videoContainer'));
 
     let pl = create('video');
     pl.setAttribute('class', 'mt-3');
     pl.id = 'player';
-    pl.crossorigin="anonymous";
+    pl.crossorigin = "anonymous";
     pl.setAttribute('controls', '');
     getSingle('#videoContainer').appendChild(pl);
 
@@ -129,6 +128,22 @@ function createPlayer() {
         player.poster = 'src/movietime.jpg';
     });
 
+    player.on('seeked', e => {
+        print(e.detail.plyr.currentTime);
+
+        if (parseInt(localStorage.getItem('user')) == 1) {
+            getUsers().then(nr => {
+                const _nr = parseInt(nr);
+                for (let i = 1; i < _nr + 1; i++) {
+                    path.child(`rooms/${room}/users/${i}/`).update({
+                        paused: true,
+                        time: [e.detail.plyr.currentTime]
+                    });
+                }
+            });
+        }
+    });
+
     player.on('playing', e => {
         if (parseInt(localStorage.getItem('user')) == 1) {
             getUsers().then(nr => {
@@ -161,24 +176,12 @@ function createPlayer() {
     //     timeUpdate(room, user, e.detail.plyr.currentTime);
     // });
 
+    // LA QUE FUNCIONA
     getUsers().then(nr => {
         for (let i = 0; i < parseInt(nr); i++) {
             path.child(`rooms/${localStorage.getItem('room')}/users/`).on('child_changed', snap => {
                 path.child(`rooms/${localStorage.getItem('room')}/users/${i+1}`).once('value', snap => {
                     if (parseInt(localStorage.getItem('user')) != 1) {
-                        // setTimeout(() => {
-                        //     print('The value is: ' + snap.val().paused);
-                        //     if (snap.val().paused) {
-                        //         print('Pause');
-                        //         getSingle('#player').pause();
-                        //         getSingle('#player').currentTime = snap.val().time;
-                        //     } else {
-                        //         print('Play');
-                        //         getSingle('#player').play();
-                        //         getSingle('#player').currentTime = snap.val().time;
-                        //     }
-                        // }, 5);
-
                         print('The value is: ' + snap.val().paused);
                         if (snap.val().paused) {
                             print('Pause');
@@ -194,6 +197,33 @@ function createPlayer() {
             })
         }
     });
+
+    // DESARROLLO
+    // getUsers().then(nr => {
+    //     const defRoom = parseInt(localStorage.getItem('room'));
+    //     const defUser = parseInt(localStorage.getItem('user'));
+
+    //     path.child(`rooms/${defRoom}/users/`).limitToFirst(1).on('child_changed', snap => {
+    //         const detonant = parseInt(snap.key);
+    //         for (let i = 0; i < parseInt(nr); i++) {
+    //             path.child(`rooms/${defRoom}/users/${i+1}`).once('value', snap => {
+    //                 if (defUser != detonant) {
+    //                     print('The value is: ' + snap.val().paused);
+    //                     if (snap.val().paused) {
+    //                         print('Pause');
+    //                         getSingle('#player').pause();
+    //                         getSingle('#player').currentTime = snap.val().time;
+    //                     } else {
+    //                         print('Play');
+    //                         getSingle('#player').play();
+    //                         getSingle('#player').currentTime = snap.val().time;
+    //                     }
+    //                 }
+    //             });
+    //         }
+    //     })
+
+    // });
 
     path.child(`rooms/${localStorage.getItem('room')}/users/`).once('value', snap => {
         getSingle('#numViewers').innerHTML = 'subs: ' + snap.numChildren();
@@ -243,7 +273,7 @@ async function cCreate(client, torrentId) {
 
         createRoom(room, {
             torrent: {
-                magnetURI: [torrent.magnetURI],
+                magnetURI: [torrentId],
                 name: [torrent.name]
             },
             users: {
@@ -280,14 +310,18 @@ async function cCreate(client, torrentId) {
 }
 
 async function syncPlayer() {
-    createPlayer();
+    // path.child(`rooms/${localStorage.getItem('room')}/users/`).limitToFirst(1).on('child_changed', snap => {
+    //     print(snap.val());
+    //     print(snap.key);
+    //     print(Object.keys(snap.val()));
+    // });
+
     const client = cNewClient();
 
     getRoomInfo(localStorage.getItem('room')).then(roomInfoObj => {
 
         getSingle('#magnetName').innerHTML = roomInfoObj.torrent.name[0];
         client.add(roomInfoObj.torrent.magnetURI[0], async (torrent) => {
-            // print(torrent);
             t = torrent;
 
             let file = torrent.files.find((file) => {
@@ -296,6 +330,7 @@ async function syncPlayer() {
 
             announceList.forEach(tracker => torrent.announce.push(tracker[0]));
             optionalExTrackers.forEach(tracker => torrent.announce.push(tracker));
+            createPlayer();
 
             file.renderTo('video', {
                 autoplay: false,
@@ -310,6 +345,7 @@ async function syncPlayer() {
         });
 
         client.on('error', function (err) {});
+
     });
 }
 

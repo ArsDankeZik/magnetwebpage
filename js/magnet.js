@@ -182,7 +182,7 @@ function createPlayer() {
             path.child(`rooms/${localStorage.getItem('room')}/users/`).on('child_changed', snap => {
                 path.child(`rooms/${localStorage.getItem('room')}/users/${i+1}`).once('value', snap => {
                     if (parseInt(localStorage.getItem('user')) != 1) {
-                        print('The value is: ' + snap.val().paused);
+                        // print('The value is: ' + snap.val().paused);
                         if (snap.val().paused) {
                             print('Pause');
                             getSingle('#player').pause();
@@ -198,44 +198,9 @@ function createPlayer() {
         }
     });
 
-    // DESARROLLO
-    // getUsers().then(nr => {
-    //     const defRoom = parseInt(localStorage.getItem('room'));
-    //     const defUser = parseInt(localStorage.getItem('user'));
-
-    //     path.child(`rooms/${defRoom}/users/`).limitToFirst(1).on('child_changed', snap => {
-    //         const detonant = parseInt(snap.key);
-    //         for (let i = 0; i < parseInt(nr); i++) {
-    //             path.child(`rooms/${defRoom}/users/${i+1}`).once('value', snap => {
-    //                 if (defUser != detonant) {
-    //                     print('The value is: ' + snap.val().paused);
-    //                     if (snap.val().paused) {
-    //                         print('Pause');
-    //                         getSingle('#player').pause();
-    //                         getSingle('#player').currentTime = snap.val().time;
-    //                     } else {
-    //                         print('Play');
-    //                         getSingle('#player').play();
-    //                         getSingle('#player').currentTime = snap.val().time;
-    //                     }
-    //                 }
-    //             });
-    //         }
-    //     })
-
-    // });
-
     path.child(`rooms/${localStorage.getItem('room')}/users/`).once('value', snap => {
         getSingle('#numViewers').innerHTML = 'subs: ' + snap.numChildren();
     });
-    // let langName = 'es';
-    // let caption = create('track');
-    // caption.setAttribute('kind', 'captions');
-    // caption.setAttribute('src', 'https://gist.githubusercontent.com/samdutton/ca37f3adaf4e23679957b8083e061177/raw/e19399fbccbc069a2af4266e5120ae6bad62699a/sample.vtt');
-    // caption.setAttribute('srclang', langName);
-    // caption.setAttribute('default', '');
-
-    // getSingle('#player').appendChild(caption);
 }
 
 function getUsers() {
@@ -261,9 +226,7 @@ async function cCreate(client, torrentId) {
         file.renderTo('video', {
             autoplay: false,
             muted: true
-        }, function callback() {
-            // console.log("Ready!");
-        });
+        }, function callback() {});
 
         announceList.forEach(tracker => torrent.announce.push(tracker[0]));
         optionalExTrackers.forEach(tracker => torrent.announce.push(tracker));
@@ -310,27 +273,49 @@ async function cCreate(client, torrentId) {
 }
 
 async function syncPlayer() {
+
     // path.child(`rooms/${localStorage.getItem('room')}/users/`).limitToFirst(1).on('child_changed', snap => {
     //     print(snap.val());
     //     print(snap.key);
     //     print(Object.keys(snap.val()));
     // });
 
+    // const pingPath = `/rooms/${parseInt(localStorage.getItem('room'))}/ping`;
+
+    // path.child(pingPath+'/pong').on('child_changed', snap => {
+    //     print(snap.key + snap.val());
+    // });
+
+    // path.child(pingPath).update({
+    //     user: parseInt(localStorage.getItem('user'))
+    // });
+
+    
+
+
     const client = cNewClient();
 
     getRoomInfo(localStorage.getItem('room')).then(roomInfoObj => {
+        if(roomInfoObj == null) {
+            getSingle('#magnetName').innerHTML = 'There is not room! You\'ll be redirected main page...';
+            onOffNode(getSingle('#deleteButton'), false);
+            setTimeout(() => {
+                window.location.replace(window.location.pathname);
+            }, 3500);
+        }
 
         getSingle('#magnetName').innerHTML = roomInfoObj.torrent.name[0];
+        createPlayer();
+
         client.add(roomInfoObj.torrent.magnetURI[0], async (torrent) => {
             t = torrent;
 
             let file = torrent.files.find((file) => {
-                return file.name.endsWith('.mp4') || file.name.endsWith('.mkv');
+                return file.name.endsWith('.mp4') || file.name.endsWith('.mkv') || file.name.endsWith('.m4v');
             });
 
             announceList.forEach(tracker => torrent.announce.push(tracker[0]));
             optionalExTrackers.forEach(tracker => torrent.announce.push(tracker));
-            createPlayer();
 
             file.renderTo('video', {
                 autoplay: false,
@@ -348,13 +333,6 @@ async function syncPlayer() {
 
     });
 }
-
-// function checkDiffTime(t1, t2) {
-//     let maior = t1 > t2 ? t1 : t2;
-//     let minor = t1 < t2 ? t1 : t2;
-
-//     return (maior - minor) >= 1.3 ? true : false;
-// }
 
 function getLastRoom() {
     return new Promise((resolve) =>
@@ -397,12 +375,7 @@ function getRoomInfo(room) {
     });
 }
 
-/**
- * 
- * @param {int} origin /origin room 
- * @param {int} to / target room 
- * @param {boolean} overwrite / If target room exists overwrite it
- */
+//overwrite = true|false if overwrite an existing room
 function moveRoomTo(origin, to, overwrite) {
     path.child(`/rooms/`).once('value', async snap => {
         if (snap.child(to).exists()) {
@@ -428,3 +401,4 @@ function removeRoom(room) {
         } else print('That room doesn\'t exist');
     });
 }
+

@@ -5,10 +5,15 @@ const announceList = [
     ['udp://tracker.leechers-paradise.org:6969'],
     ['udp://tracker.coppersurfer.tk:6969'],
     ['udp://tracker.opentrackr.org:1337'],
+    ['udp://tracker.openbittorrent.com:80'],
     ['udp://explodie.org:6969'],
     ['udp://tracker.empire-js.us:1337'],
+    ['udp://exodus.desync.com:6969'],
+    ['udp://tracker.internetwarriors.net:1337'],
     ['wss://tracker.btorrent.xyz'],
-    ['wss://tracker.openwebtorrent.com']
+    ['wss://tracker.openwebtorrent.com'],
+    ['wss://tracker.webtorrent.io'],
+    ['wss://tracker.fastcast.nz']
 ];
 
 const optionalExTrackers = [
@@ -216,7 +221,11 @@ function cNewClient() {
 }
 
 async function cCreate(client, torrentId) {
+    client.on('error', (err) => {});
+
     client.add(torrentId, async (torrent) => {
+        torrent.on('warning', () => {});
+        torrent.on('error', () => {});
         t = torrent;
 
         let file = torrent.files.find((file) => {
@@ -268,8 +277,6 @@ async function cCreate(client, torrentId) {
             getSingle('#numViewers').innerHTML = 'subs: ' + snap.numChildren();
         });
     });
-
-    client.on('error', function (err) {});
 }
 
 async function syncPlayer() {
@@ -290,10 +297,9 @@ async function syncPlayer() {
     //     user: parseInt(localStorage.getItem('user'))
     // });
 
-    
-
-
     const client = cNewClient();
+    client.on('error', (err) => {});
+    
 
     getRoomInfo(localStorage.getItem('room')).then(roomInfoObj => {
         if(roomInfoObj == null) {
@@ -308,6 +314,8 @@ async function syncPlayer() {
         createPlayer();
 
         client.add(roomInfoObj.torrent.magnetURI[0], async (torrent) => {
+            torrent.on('warning', () => {});
+	        torrent.on('error', () => {});
             t = torrent;
 
             let file = torrent.files.find((file) => {
@@ -323,14 +331,20 @@ async function syncPlayer() {
             }, function callback() {
                 console.log("Ready!");
             });
+
+            torrent.on('done', () => {
+                getSingle('#remainingTime').innerHTML = "Enjoy!";    
+            })
         });
 
         client.on('torrent', (torrent) => {
             print('Torrent is ready to be used!');
+            setTimeout(() => {
+                getSingle('#remainingTime').innerHTML = 'Remaining time: '+moment.duration(t.timeRemaining / 1000, 'seconds').humanize();
+            }, 2500);
         });
 
         client.on('error', function (err) {});
-
     });
 }
 

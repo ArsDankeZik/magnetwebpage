@@ -357,7 +357,7 @@ function createRoom(id, obj) {
 
 async function createUser(room) {
     const currentUser = parseInt(await getLastUserPerRoom(room)) + 1;
-    print(currentUser);
+    // print(currentUser);
     path.child(`/rooms/${room}/users/${currentUser}`).update({
         admin: false,
         paused: true,

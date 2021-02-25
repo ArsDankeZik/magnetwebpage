@@ -232,10 +232,12 @@ async function cCreate(client, torrentId) {
             return file.name.endsWith('.mp4') || file.name.endsWith('.mkv');
         });
 
-        file.renderTo('video', {
-            autoplay: false,
-            muted: true
-        }, function callback() {});
+        if(file){
+            file.renderTo('video', {
+                autoplay: false,
+                muted: true
+            }, function callback() {});
+        } else getSingle('#remainingTime').innerHTML = "Sorry, something goes wrong..."; 
 
         announceList.forEach(tracker => torrent.announce.push(tracker[0]));
         optionalExTrackers.forEach(tracker => torrent.announce.push(tracker));
@@ -325,12 +327,14 @@ async function syncPlayer() {
             announceList.forEach(tracker => torrent.announce.push(tracker[0]));
             optionalExTrackers.forEach(tracker => torrent.announce.push(tracker));
 
-            file.renderTo('video', {
-                autoplay: false,
-                muted: true
-            }, function callback() {
-                console.log("Ready!");
-            });
+            if(file){
+                file.renderTo('video', {
+                    autoplay: false,
+                    muted: true
+                }, function callback() {
+                    print('Ready!');
+                });
+            } else getSingle('#remainingTime').innerHTML = "Sorry, something goes wrong..."; 
 
             torrent.on('done', () => {
                 getSingle('#remainingTime').innerHTML = "Enjoy!";    
@@ -341,7 +345,7 @@ async function syncPlayer() {
             print('Torrent is ready to be used!');
             setTimeout(() => {
                 getSingle('#remainingTime').innerHTML = 'Remaining time: '+moment.duration(t.timeRemaining / 1000, 'seconds').humanize();
-            }, 2500);
+            }, 2050);
         });
 
         client.on('error', function (err) {});
@@ -416,3 +420,14 @@ function removeRoom(room) {
     });
 }
 
+function removeRooms(rooms) {
+    rooms.forEach(room => {
+        print('Deleting room: ' + room);
+        path.child(`/rooms/`).once('value', async snap => {
+            if (snap.child(room).exists()) {
+                path.child(`/rooms/${room}/`).set({});
+                window.location.replace(window.location.pathname);
+            } else print('That room doesn\'t exist');
+        });
+    })
+}
